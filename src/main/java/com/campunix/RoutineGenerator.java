@@ -5,27 +5,38 @@ import java.util.stream.Collectors;
 
 public class RoutineGenerator {
 
-    public List<Gene> availableGenes = Arrays.asList(
-            new Gene("CSE-203", "EI", "2-1", 1, true),
-            new Gene("CSE-205", "NAR", "2-1", 1, false),
-            new Gene("CSE-206", "GM", "2-1", 1, false),
-            new Gene("CSE-207", "MMB", "2-1", 1, false),
-            new Gene("CSE-208", "MZR", "2-1", 1, false),
-            new Gene("CSE-209", "MAI", "2-1", 1, false),
-            new Gene("CSE-210", "MAI", "2-1", 1, true),
-            new Gene("CSE-212", "EI", "2-1", 1, true),
-            new Gene("CSE-303", "SKS", "3-1", 2, false),
-            new Gene("CSE-305", "BA", "3-1", 2, false),
-            new Gene("CSE-307", "JKD", "3-1", 2, false),
-            new Gene("CSE-309", "AKA", "3-1", 2, false),
-            new Gene("CSE-314", "SB", "3-1", 2, true),
-            new Gene("CSE-304", "SKS", "3-1", 2, true)
-    );
-
-    public int totalPopulation = 10;
+    public List<Gene> availableGenes;
+    public int totalPopulation;
     private final Random random = new Random();
 
-    public Chromosome generate() {
+    private RoutineGenerator(RoutineGeneratorBuilder builder) {
+        this.availableGenes = builder.availableGenes;
+        this.totalPopulation = builder.totalPopulation;
+    }
+
+    public static class RoutineGeneratorBuilder {
+        private List<Gene> availableGenes = new ArrayList<>();
+        private int totalPopulation = 10; // Default value
+
+        // Set available genes
+        public RoutineGeneratorBuilder setAvailableGenes(List<Gene> availableGenes) {
+            this.availableGenes = availableGenes;
+            return this;
+        }
+
+        // Set total population
+        public RoutineGeneratorBuilder setTotalPopulation(int totalPopulation) {
+            this.totalPopulation = totalPopulation;
+            return this;
+        }
+
+        // Build and return the RoutineGenerator object
+        public RoutineGenerator build() {
+            return new RoutineGenerator(this);
+        }
+    }
+
+    public void generate() {
         List<Chromosome> chromosomes = initializePopulation();
 
         int generation = 0;
@@ -44,21 +55,18 @@ public class RoutineGenerator {
             if (chromosomes.get(0).getFitness() == 1.0) {
                 System.out.println("Optimal schedule found:");
                 printSchedule(chromosomes.get(0));
-                return chromosomes.get(0);
+                return;
             }
 
             // Selection
             List<Chromosome> newChromosomes = selectBestPopulation(chromosomes);
 
-            newChromosomes = performCrossover(newChromosomes);
-
-            newChromosomes = performMutation(newChromosomes);
+            newChromosomes.addAll(performCrossover(newChromosomes));
+            newChromosomes.addAll(performMutation(newChromosomes));
 
             chromosomes = newChromosomes;
             generation++;
         }
-
-        return chromosomes.get(0);
     }
 
     private List<Chromosome> initializePopulation() {
@@ -84,7 +92,6 @@ public class RoutineGenerator {
         return newPopulation;
     }
 
-    // Perform mutation to maintain genetic diversity
     private List<Chromosome> performMutation(List<Chromosome> population) {
         for (Chromosome schedule : population) {
             if (random.nextDouble() < 0.1) { // Mutation rate of 10%
@@ -94,19 +101,18 @@ public class RoutineGenerator {
         return population;
     }
 
-    // Print the schedule
     private static void printSchedule(Chromosome schedule) {
         // Assuming you're using a JSON library such as Gson
-        //System.out.println(new com.google.gson.Gson().toJson(schedule.getGenes()));
+        // System.out.println(new com.google.gson.Gson().toJson(schedule.getGenes()));
 
         List<Gene> ordered = schedule.getGenes().stream()
                 .sorted(Comparator.comparingInt(Gene::getCellNumber))
-                .collect(Collectors.toList());
+                .toList();
         for (int i = 0; i < schedule.getGenes().size(); i++) {
             Gene gene = ordered.get(i);
-            System.out.println(String.format("Time Slot %d: Class - %s, Teacher - %s, CellNumber - %d, (row, col) = (%d, %d)",
+            System.out.printf("Time Slot %d: Class - %s, Teacher - %s, CellNumber - %d, (row, col) = (%d, %d)%n",
                     i + 1, gene.getCourseCode(), gene.getCourseTeacher(), gene.getCellNumber(),
-                    gene.getCellNumber() / 5, gene.getCellNumber() % 5));
+                    gene.getCellNumber() / 5, gene.getCellNumber() % 5);
         }
     }
 }
