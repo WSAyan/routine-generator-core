@@ -36,29 +36,23 @@ public class RoutineGenerator {
         }
     }
 
-    public void generate() {
+    public Chromosome generate() {
         List<Chromosome> chromosomes = initializePopulation();
 
         int generation = 0;
-        while (generation < 1000) { // max generations
-            // Evaluate fitness
+        while (generation < 1000) {
             for (Chromosome chromosome : chromosomes) {
                 chromosome.CalculateFitness();
             }
 
-            // Sort population by fitness
             chromosomes = chromosomes.stream()
                     .sorted(Comparator.comparingDouble(Chromosome::getFitness).reversed())
                     .collect(Collectors.toList());
 
-            // If best solution found, break
             if (chromosomes.get(0).getFitness() == 1.0) {
-                System.out.println("Optimal schedule found:");
-                printSchedule(chromosomes.get(0));
-                return;
+                return chromosomes.get(0);
             }
 
-            // Selection
             List<Chromosome> newChromosomes = selectBestPopulation(chromosomes);
 
             newChromosomes.addAll(performCrossover(newChromosomes));
@@ -67,6 +61,8 @@ public class RoutineGenerator {
             chromosomes = newChromosomes;
             generation++;
         }
+
+        return chromosomes.get(0);
     }
 
     private List<Chromosome> initializePopulation() {
@@ -99,21 +95,6 @@ public class RoutineGenerator {
             }
         }
         return population;
-    }
-
-    private static void printSchedule(Chromosome schedule) {
-        // Assuming you're using a JSON library such as Gson
-        // System.out.println(new com.google.gson.Gson().toJson(schedule.getGenes()));
-
-        List<Gene> ordered = schedule.getGenes().stream()
-                .sorted(Comparator.comparingInt(Gene::getCellNumber))
-                .toList();
-        for (int i = 0; i < schedule.getGenes().size(); i++) {
-            Gene gene = ordered.get(i);
-            System.out.printf("Time Slot %d: Class - %s, Teacher - %s, CellNumber - %d, (row, col) = (%d, %d)%n",
-                    i + 1, gene.getCourseCode(), gene.getCourseTeacher(), gene.getCellNumber(),
-                    gene.getCellNumber() / 5, gene.getCellNumber() % 5);
-        }
     }
 }
 

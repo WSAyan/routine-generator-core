@@ -1,10 +1,13 @@
 package com.campunix;
 
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static java.util.Arrays.*;
 
 public class Main {
+
     public static void main(String[] args) {
         List<Gene> genes = asList(
                 new Gene("CSE-203", "EI", "2-1", 1, true),
@@ -28,6 +31,20 @@ public class Main {
                 .setTotalPopulation(10)
                 .build();
 
-        generator.generate();
+        Chromosome chromosome = generator.generate();
+        printSchedule(chromosome);
+    }
+
+    private static void printSchedule(Chromosome schedule) {
+        List<Gene> ordered = schedule.getGenes().stream()
+                .sorted(Comparator.comparingInt(Gene::getCellNumber))
+                .collect(Collectors.toList());
+
+        for (int i = 0; i < schedule.getGenes().size(); i++) {
+            Gene gene = ordered.get(i);
+            System.out.printf("Time Slot %d: Class - %s, Teacher - %s, CellNumber - %d, (row, col) = (%d, %d)%n",
+                    i + 1, gene.getCourseCode(), gene.getCourseTeacher(), gene.getCellNumber(),
+                    gene.getCellNumber() / 5, gene.getCellNumber() % 5);
+        }
     }
 }

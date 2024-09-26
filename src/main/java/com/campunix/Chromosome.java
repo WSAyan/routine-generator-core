@@ -7,6 +7,7 @@ import java.util.Random;
 import static com.campunix.GeneExtensions.*;
 
 public class Chromosome {
+
     public int TotalSlot = 5;
     public int TotalSemester = 2;
 
