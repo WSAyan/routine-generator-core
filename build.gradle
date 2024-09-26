@@ -1,12 +1,16 @@
 plugins {
     id 'java'
+    id 'maven-publish'  // Add the maven-publish plugin
 }
 
 group = 'com.campunix'
-version = '1.0-SNAPSHOT'
+version = '1.0.0'
 
-repositories {
-    mavenCentral()
+jar {
+    into("META-INF/maven/$project.group/$project.name") {
+        from { generatePomFileForMavenJavaPublication }
+        rename ".*", "pom.xml"
+    }
 }
 
 dependencies {
@@ -16,4 +20,49 @@ dependencies {
 
 test {
     useJUnitPlatform()
+}
+
+// Configure publishing to Maven Central
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+
+            // Optional: Set POM details like project description, license, etc.
+            pom {
+                name = 'Routine Generator Core'
+                description = 'Routine Generator Core'
+                url = 'https://github.com/campunix/routine-generator-core'
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'campunix'
+                        name = 'Redoy Ahmed'
+                        email = 'redoyahmed@gmail.com'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:git://github.com/campunix/routine-generator-core.git'
+                    developerConnection = 'scm:git:ssh://github.com/youruser/yourproject.git'
+                    url = 'https://github.com/campunix/routine-generator-core'
+                }
+            }
+        }
+    }
+
+    repositories {
+        maven {
+            name = "MavenCentral"
+            url = uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
+            credentials {
+                username = project.findProperty("ossrhUsername") ?: ""
+                password = project.findProperty("ossrhPassword") ?: ""
+            }
+        }
+    }
 }
